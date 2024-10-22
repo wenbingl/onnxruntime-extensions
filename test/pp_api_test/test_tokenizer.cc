@@ -416,7 +416,7 @@ TEST(OrtxTokenizerTest, CodeGenTokenizer) {
   EXPECT_TRUE(status.IsOk());
   EXPECT_EQ(out_text1.size(), 1);
   std::string out_text_ref = out_text1.back();
-  std::cout << out_text_ref << std::endl;
+  // std::cout << out_text_ref << std::endl;
   EXPECT_EQ(out_text_ref.substr(out_text_ref.length() - 3, 3), "\ufffd");
 }
 
@@ -536,7 +536,7 @@ TEST(OrtxTokenizerTest, WhisperTokenizer) {
 
   OrtxObjectPtr<OrtxTokenId2DArray> prompt_ids;
 
-  extError_t err = OrtxGetDecoderPromptIds(tokenizer.get(), 1, "en", "transcribe", 1, ort_extensions::ptr(prompt_ids));
+  extError_t err = OrtxGetDecoderPromptIds(tokenizer.get(), 1, "en", "transcribe", 1, ort_extensions::move_ptr(prompt_ids));
   EXPECT_EQ(err, kOrtxOK);
 
   size_t length = 0;
@@ -559,7 +559,7 @@ TEST(OrtxTokenizerTest, SpmUgmTokenizer) {
 
   const char* input[] = {"I like walking my cute dog\n and\x17 then, 生活的真谛是  \t\t\t\t \n\n61"};
   OrtxObjectPtr<OrtxTokenId2DArray> token_ids;
-  OrtxTokenize(tokenizer.get(), input, 1, ort_extensions::ptr(token_ids));
+  OrtxTokenize(tokenizer.get(), input, 1, ort_extensions::move_ptr(token_ids));
   EXPECT_EQ(token_ids.Code(), kOrtxOK);
 
   size_t length = 0;
@@ -573,7 +573,7 @@ TEST(OrtxTokenizerTest, SpmUgmTokenizer) {
     0, 87, 1884, 122395, 759, 99942, 10269, 136, 7068, 4, 6, 62668, 5364, 245875, 354, 11716, 2}));
 
   OrtxObjectPtr<OrtxStringArray> decoded_text;
-  OrtxDetokenize(tokenizer.get(), token_ids.get(), ort_extensions::ptr(decoded_text));
+  OrtxDetokenize(tokenizer.get(), token_ids.get(), ort_extensions::move_ptr(decoded_text));
   EXPECT_EQ(decoded_text.Code(), kOrtxOK);
 
   const char* text = nullptr;
@@ -587,4 +587,23 @@ TEST(OrtxTokenizerTest, SpmUgmTokenizer) {
     [](char lhs, char rhs) { return lhs == ' ' && rhs == ' ';  }), filtered_text.end());
 
   EXPECT_STREQ(filtered_text.c_str(), text);
+}
+
+TEST(OrtxTokenizerTest, T5Tokenizer) {
+  OrtxObjectPtr<OrtxTokenizer> tokenizer(OrtxCreateTokenizer, "data/tokenizer/t5-small");
+  ASSERT_EQ(tokenizer.Code(), kOrtxOK) << "Failed to create tokenizer, stopping the test.";
+
+  const char* input[] = {"I like walking my cute dog\n and\x17 then, 生活的真谛是  \t\t\t\t \n\n61"};
+  OrtxObjectPtr<OrtxTokenId2DArray> token_ids;
+  OrtxTokenize(tokenizer.get(), input, 1, ort_extensions::move_ptr(token_ids));
+  ASSERT_EQ(token_ids.Code(), kOrtxOK);
+
+  size_t length = 0;
+  const extTokenId_t* ids = nullptr;
+  OrtxTokenId2DArrayGetItem(token_ids.get(), 0, &ids, &length);
+  std::vector<extTokenId_t> ids_vec(ids, ids + length);
+
+  // expected ids was generated using the following command:
+  // AutoTokenizer.from_pretrained("google-t5/t5-small")
+  ASSERT_EQ(ids_vec, std::vector<extTokenId_t>({27, 114, 3214, 82, 5295, 1782, 11, 258, 6, 3, 2, 3, 4241, 1}));
 }

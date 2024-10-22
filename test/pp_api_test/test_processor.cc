@@ -47,18 +47,18 @@ TEST(ProcessorTest, TestClipImageProcessing) {
   const char* images_path[] = {"data/processor/standard_s.jpg", "data/processor/australia.jpg",
                                "data/processor/exceltable.png"};
   OrtxObjectPtr<OrtxRawImages> raw_images;
-  extError_t err = OrtxLoadImages(ort_extensions::ptr(raw_images), images_path, 3, nullptr);
+  extError_t err = OrtxLoadImages(ort_extensions::move_ptr(raw_images), images_path, 3, nullptr);
   ASSERT_EQ(err, kOrtxOK);
 
   OrtxObjectPtr<OrtxProcessor> processor;
-  err = OrtxCreateProcessor(ort_extensions::ptr(processor), "data/processor/clip_image.json");
+  err = OrtxCreateProcessor(ort_extensions::move_ptr(processor), "data/processor/clip_image.json");
   if (err != kOrtxOK) {
     std::cout << "Error: " << OrtxGetLastErrorMessage() << std::endl;
   }
   ASSERT_EQ(err, kOrtxOK);
 
   OrtxObjectPtr<OrtxTensorResult> result;
-  err = OrtxImagePreProcess(processor.get(), raw_images.get(), ort_extensions::ptr(result));
+  err = OrtxImagePreProcess(processor.get(), raw_images.get(), ort_extensions::move_ptr(result));
   ASSERT_EQ(err, kOrtxOK);
 
   OrtxTensor* tensor;

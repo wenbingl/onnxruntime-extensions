@@ -21,12 +21,12 @@ std::set<std::string> TokenizerImpl::supported_bpe_models_ = {
   "CodeLlamaTokenizer",
   "CodeGenTokenizer",
   "GPT2Tokenizer",
-  "Qwen2Tokenizer",
-  "T5Tokenizer"
+  "Qwen2Tokenizer"
 };
 
 std::set<std::string> TokenizerImpl::supported_ugm_models_ = {
-  "XLMRobertaTokenizer"
+  "XLMRobertaTokenizer",
+  "T5Tokenizer"
 };
 
 TokenizerImpl::TokenizerImpl()
